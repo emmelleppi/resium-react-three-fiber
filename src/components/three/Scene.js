@@ -1,73 +1,40 @@
-import React, { useEffect, useCallback } from 'react';
-import Cesium from "cesium"
+import React from 'react';
 import * as THREE from 'three/src/Three'
-import { useRender, useThree } from 'react-three-fiber'
+import { useFrame } from 'react-three-fiber'
 
 import Lathe from "./Lathe"
 import Dodecahedron from "./Dodecahedron"
 
 import { useStoreObjs, useStoreCesium } from "../../store"
 import { cartToVec } from "../../utils"
+import {Math as CesiumMath, Cartesian3} from 'cesium';
 
 function ThreeScene() {
   
     const objArray = useStoreObjs(state => state.objs)
     const cesiumRef = useStoreCesium(state => state.cesium)
 
-    const { canvas } = useThree()
     
-    const eventTypes = ["contextmenu", "selectstart", "pointerdown", "pointerup", "pointermove", "pointercancel", "dblclick", "wheel"]
-  
-    const propagateEvent = useCallback(
-      function propagateEvent(e) {
-  
-        let event
-  
-        if (e instanceof PointerEvent) {
-          event = new PointerEvent(e.type, e)
-        } else  if (e instanceof WheelEvent) {
-          event = new WheelEvent(e.type, e)
-        } else  if (e instanceof MouseEvent) {
-          event = new MouseEvent(e.type, e)
-        }
-  
-        cesiumRef.cesiumElement._container.querySelector("canvas").dispatchEvent(event);
-      },
-      [cesiumRef]
-    )
-  
-    useEffect(() => {
-      eventTypes.forEach(type => {
-        canvas.addEventListener(type, propagateEvent) 
-      })
-  
-      return () => {
-        eventTypes.forEach(type => {
-          canvas.removeEventListener(type, propagateEvent) 
-        })
-      }
-    }, [canvas, eventTypes, propagateEvent])
-    
-    useRender(({ gl, scene, camera: threeCamera, canvas }) => {
+    useFrame(({ gl, scene, camera: threeCamera }) => {
       if (!cesiumRef) return
   
       const { camera: cesiumCamera } = cesiumRef.cesiumElement
       
-      threeCamera.fov = Cesium.Math.toDegrees(cesiumCamera.frustum.fovy) // ThreeJS FOV is vertical
+      threeCamera.fov = CesiumMath.toDegrees(cesiumCamera.frustum.fovy) // ThreeJS FOV is vertical
       threeCamera.updateProjectionMatrix()
   
       objArray.forEach(obj => {
         const { mesh, minWGS84, maxWGS84 } = obj
   
         // convert lat/long center position to Cartesian3
-        const center = cartToVec(Cesium.Cartesian3.fromDegrees((minWGS84[0] + maxWGS84[0]) / 2, (minWGS84[1] + maxWGS84[1]) / 2));
+        const center = cartToVec(Cartesian3.fromDegrees((minWGS84[0] + maxWGS84[0]) / 2, (minWGS84[1] + maxWGS84[1]) / 2));
     
         // get forward direction for orienting model
-        const centerHigh = cartToVec(Cesium.Cartesian3.fromDegrees((minWGS84[0] + maxWGS84[0]) / 2, (minWGS84[1] + maxWGS84[1]) / 2,1));
+        const centerHigh = cartToVec(Cartesian3.fromDegrees((minWGS84[0] + maxWGS84[0]) / 2, (minWGS84[1] + maxWGS84[1]) / 2,1));
     
         // use direction from bottom left to top left as up-vector
-        const bottomLeft  = cartToVec(Cesium.Cartesian3.fromDegrees(minWGS84[0], minWGS84[1]));
-        const topLeft = cartToVec(Cesium.Cartesian3.fromDegrees(minWGS84[0], maxWGS84[1]));
+        const bottomLeft  = cartToVec(Cartesian3.fromDegrees(minWGS84[0], minWGS84[1]));
+        const topLeft = cartToVec(Cartesian3.fromDegrees(minWGS84[0], maxWGS84[1]));
         const latDir  = new THREE.Vector3().subVectors(bottomLeft, topLeft).normalize();
     
         // configure entity position and orientation
@@ -94,8 +61,8 @@ function ThreeScene() {
           cvm[3], cvm[7], cvm[11], cvm[15]
       );
   
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
       const aspect = width / height;
       threeCamera.aspect = aspect;
       threeCamera.updateProjectionMatrix();

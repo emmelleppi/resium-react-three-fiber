@@ -44,6 +44,7 @@ function ThreeContainer() {
       <Canvas
         gl={{ alpha: true }}
         camera={{...cameraProps}}
+        style={{pointerEvents: 'none'}}
       >
         <ThreeScene />
       </Canvas>
