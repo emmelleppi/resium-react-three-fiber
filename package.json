@@ -5,13 +5,13 @@
   "dependencies": {
     "@craco/craco": "^5.4.0",
     "@types/cesium": "^1.67.13",
-    "cesium": "^1.78.0",
+    "cesium": "^1.86.0",
     "craco-cesium": "^1.1.1",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-scripts": "3.1.1",
     "react-three-fiber": "^5.3.18",
-    "resium": "^1.13.1",
+    "resium": "^1.14.2",
     "three": "^0.125.2",
     "zustand": "^1.0.7"
   },
